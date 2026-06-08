@@ -1,0 +1,24 @@
+{
+  "name": "music_app",
+  "version": "1.0.0",
+  "description": "this is a music player",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "white667",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^42.3.3",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "productName": "white667的音乐播放器",
+    "win": {
+      "target": "nsis",
+      "icon": "iron.ico"
+    }
+  }
+}
