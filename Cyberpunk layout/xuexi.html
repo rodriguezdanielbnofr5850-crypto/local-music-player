@@ -705,22 +705,63 @@
             border-radius: 2px;
         }
 
-        .pop {
-            position: relative;
-            background: #0f0f16;
-            border: 1px solid rgba(0, 243, 255, .2);
-            border-radius: 8px;
-            padding: 6px;
-            display: none;
-            flex-direction: column;
-            gap: 2px;
-            z-index: 999;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, .6);
-        }
+/* 弹出菜单容器 */
+.pop {
+    position: fixed;
+    background: #12121a;           /* 稍亮的深色背景 */
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-radius: 12px;
+    padding: 8px 0;                /* 上下内边距，左右为0 */
+    min-width: 140px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 243, 255, 0.1);
+    backdrop-filter: blur(4px);    /* 可选：毛玻璃效果 */
+    z-index: 1000;
+    display: none;                /* 默认隐藏 */
+}
+.pop.show {
+    display: flex;
+}
+/* 每个目录项 */
+.pop-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
 
-        .pop.show {
-            display: flex;
-        }
+/* 图标大小统一 */
+.pop-item .file-logo {
+    height: 18px;
+    width: auto;
+    opacity: 0.8;
+}
+
+/* 悬停效果 */
+.pop-item:hover {
+    background: rgba(0, 243, 255, 0.12);
+    color: var(--neon-cyan);
+    text-shadow: 0 0 4px rgba(0, 243, 255, 0.3);
+}
+
+/* 如果菜单出现在底部，可以加一个小三角（可选） */
+.pop::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 12px;
+    width: 12px;
+    height: 12px;
+    background: #12121a;
+    border-left: 1px solid rgba(0, 243, 255, 0.3);
+    border-top: 1px solid rgba(0, 243, 255, 0.3);
+    transform: rotate(45deg);
+    z-index: -1;
+}
     </style>
 </head>
 
@@ -827,7 +868,7 @@
             var n = fn.replace(/\.(mp3|aac|flac|wav|ogg)$/i, '');
             if (n.includes(' - ')) {
                 const p = n.split(' - ');
-                return { artist: p[0].trim(), title: p.slice(1).join('-').trim() };
+                return { artist: p[0].trim(), title: p.slice(1).join(' - ').trim() };
             }
             return { artist: '未知艺术家', title: n.trim() };
         }
@@ -998,7 +1039,7 @@
             dirs.forEach(d =>
                 {
                     const c = countDir(d.id);
-                    html += `<div class = "dir-chip ${curDir === d.id ? 'on' : ''}" data-d = "${d.id}"> <img src="file.png" alt="default" class="file-logo">${esc(d.name)}<span style="opacity:.7">${c}</span></div>`;
+                    html += `<div class="dir-chip ${curDir === d.id ? 'on' : ''}" data-d="${d.id}"><img src="file.png" class="file-logo">${esc(d.name)}<span style="opacity:.7">${c}</span>${d.id !== 'default' ? `<span class="del" data-del="${d.id}">✖</span>` : ''}</div>`;
                 }
             );
             html += `<button class="add-dir" id="addDir">+</button>`;
@@ -1021,6 +1062,10 @@
             btnLoop.classList.toggle('on', isLoop);
         }
     //播放模式函数
+        document.getElementById('btnPlay').addEventListener('click', togglePlay);
+        document.getElementById('btnNext').addEventListener('click', next);
+        document.getElementById('btnPrev').addEventListener('click', prev);
+        document.getElementById('nowCard').addEventListener('click', () => playByIndex(curIdx));
         btnShuffle.addEventListener('click', () => {
             mode = mode === 'random' ? 'list' : 'random';
             applyMode();
@@ -1235,8 +1280,8 @@
         updateStat();
         };
         const rect = mvBtn.getBoundingClientRect();
-        pop.style.top = rect.bottom + 'px';
-        pop.style.left = rect.left + 'px';
+        pop.style.top = rect.top + 'px';
+        pop.style.left = rect.right +  + 'px';
         pop.classList.add('show');
     }else if(rmBtn){
         delsingle(songId);
@@ -1303,7 +1348,7 @@
             if (ps) playByIndex(library.findIndex(x => x.id === ps.id));
         }
     //导入与删除操作
-    function addSongs(files){
+    function addFiles(files){
         const vaild = Array.from(files).filter(f => f.type.includes('audio') ||  /\.(mp3|aac|flac|wav|ogg)$/i.test(f.name));
         if(!vaild.length) return;
         var skip = 0;
@@ -1350,10 +1395,115 @@
 
         if(was)
     {
+        audio.pause();
+        audio.src = '';
+        if (currentAudioUrl) { URL.revokeObjectURL(currentAudioUrl); currentAudioUrl = null; }
+        if (currentCoverUrl) { URL.revokeObjectURL(currentCoverUrl); currentCoverUrl = null; }
 
+        curIdx = -1;
+        document.getElementById('mainTitle').textContent = 'NO SIGNAL';
+        document.getElementById('mainArtist').textContent = 'System Idle';
+        document.getElementById('now-title').textContent = '等待数据接入...';
+        document.getElementById('now-artist').textContent = '--';
+        document.getElementById('now-time').textContent = '0:00 / 0:00';
+        document.getElementById('barFill').style.width = '0%';
+        document.getElementById('cover').src = defaultCover;
+        updatePlayBtn();
+        } else if (curIdx > idx) {
+            curIdx--;
+        }
+        saveState();
+        renderDirs();
+        renderList();
+        updateStat();
     }
+    async function delDir(id)
+    {
+        if(id === 'default') return alert('无法删除[未分类]'); 
+        if(!confirm('删除目录？神经信号将被移至[未分类]')) return; 
+        for(const s of library.filter(s => s.directoryId === id))
+        {
+            s.directoryId = 'default';
+            if(idbok) await updateSongDir(s.id,'default');
+        }
+          dirs = dirs.filter(d => d.id !== id);
+            if(curDir === id) {
+                curDir = 'default';
+                document.getElementById('searchInp').value = '';
+                kw = '';
+            }
+        await saveDirs(dirs);
+        renderDirs();
+        renderList();
+        updateStat();
     }
-    //init 函数主进程
+    //droparea所有事件绑定
+    const dropArea = document.getElementById('dropArea');
+    document.getElementById('btnSelectFiles').addEventListener('click',e => {
+        e.stopPropagation();
+        document.getElementById('fileInp').click();
+    });
+    document.getElementById('btnSelectDir').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('dirInp').click();
+    });
+    document.getElementById('fileInp').addEventListener('change', e => {
+        if(e.target.files) addFiles(e.target.files);
+        e.target.value = '';
+    });
+    document.getElementById('dirInp').addEventListener('change', e => {
+        if (e.target.files) addFiles(e.target.files);
+        e.target.value = '';
+    });
+    dropArea.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropArea.classList.add('dragover');
+    });
+
+    dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
+
+    dropArea.addEventListener('drop', e => {
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+        if (e.dataTransfer.files) addFiles(e.dataTransfer.files);
+    });
+    //进度条事件绑定
+document.getElementById('barWrap').addEventListener('click', e => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    if (audio.duration) audio.currentTime = percent * audio.duration;
+});
+//音量条事件绑定
+document.getElementById('vbar').addEventListener('click', e => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    let vol = (e.clientX - rect.left) / rect.width;
+    vol = Math.min(1, Math.max(0, vol));
+    audio.volume = vol;
+    document.getElementById('vfill').style.width = (vol * 100) + '%';
+});
+//搜索框清除事件绑定
+document.getElementById('clearSearch').addEventListener('click', () => {
+    document.getElementById('searchInp').value = '';
+    kw = '';
+    renderList();
+    updateStat();
+});
+//搜索框输入事件绑定
+document.getElementById('searchInp').addEventListener('input', e => {
+    kw = e.target.value;
+    renderList();
+    updateStat();
+});
+//弹出菜单事件绑定
+document.addEventListener('click', (e) => {
+    const pop = document.getElementById('popMune');
+    if (pop.classList.contains('show') && !e.target.closest('.mv') && !e.target.closest('.pop')) {
+        pop.classList.remove('show');
+    }
+});
+
+
+
     async function init() {
         if(!window.indexedDB) idbok = false;
         try{
