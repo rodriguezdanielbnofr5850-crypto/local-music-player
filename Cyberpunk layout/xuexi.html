@@ -1034,16 +1034,16 @@
         function updatePlayBtn()
         {
             const btn = document.getElementById('btnPlay');
-            if(audio.paused)
-            {
-                btn.textContent = '▶';
-                document.getElementById('cover').classList.remove('spin');
-                document.getElementById('nowCard').classList.remove('paused');
-            }
-            else{
-                btn.textContent = '⏸';
-                document.getElementById('cover').classList.add('spin');
-                document.getElementById('nowCard').classList.add('paused');
+            const disc = document.getElementById('cover');
+            const viz = document.getElementById('viz');
+            if (audio.paused) {
+                btn.innerHTML = '▶';
+                disc.classList.remove('spin');
+                viz.classList.add('paused');
+            } else {
+                btn.innerHTML = '⏸';
+                disc.classList.add('spin');
+                viz.classList.remove('paused');
             }
         }
         //前后首操作button事件绑定
