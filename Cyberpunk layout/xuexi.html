@@ -1003,7 +1003,7 @@
             html += `<button class="add-dir" id="addDir">+</button>`;
             document.getElementById('dirBar').innerHTML = html;
         }
-        //播放模式应用
+    //播放模式应用
         const btnShuffle = document.getElementById('btnShuffle');
         const btnLoop = document.getElementById('btnLoop');
         function applyMode()
@@ -1019,7 +1019,18 @@
             btnShuffle.classList.toggle('on', isShuffle);
             btnLoop.classList.toggle('on', isLoop);
         }
-        //列表渲染函数
+    //播放模式函数
+        btnShuffle.addEventListener('click', () => {
+            mode = mode === 'random' ? 'list' : 'random';
+            applyMode();
+            saveState();
+        });
+        btnLoop.addEventListener('click', () => {
+            mode = mode === 'loop' ? 'list' : 'loop';
+            applyMode();
+            saveState();
+        });
+    //列表渲染函数
         function renderList()
         {
             const f = filtered();
@@ -1196,7 +1207,45 @@
             document.getElementById('now-time').textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
         }
     });
-        //前后首操作button事件绑定
+    //点击左侧歌曲栏播放
+    document.getElementById('listBox').addEventListener('click',e=>{
+        const row = e.target.closest('.row');
+        if(!row) return;
+        const mvBtn = e.target.closest('.mv');
+        const rmBtn = e.target.closest('.rm');
+        const songId = row.dataset.id;
+        const gIdx = parseInt(row.dataset.g);
+        if(mvBtn)
+    {
+        const pop = document.getElementById('popMune');
+        pop.innerHTML = dirs.map(d => `<div class="pop-item" data-id="${d.id}"><img src="file.png" alt="default" class="file-logo"> ${esc(d.name)}</div>`).join('');
+        pop.onclick = async (ev) => {
+            const item = ev.target.closest('.pop-item');
+            if(!item) return;
+            const song = library.find(s => s.id === songId);
+            if(song)
+        {
+            song.directoryId = item.dataset.to;
+            await updateSongDir(song.id, item.dataset.id);
+        }
+        pop.classList.remove('show');
+        renderDirs();
+        renderList();
+        updateStat();
+        };
+        const rect = mvBtn.getBoundingClientRect();
+        pop.style.top = rect.bottom + 'px';
+        pop.style.left = rect.left + 'px';
+        pop.classList.add('show');
+    }else if(rmBtn){
+        delsingle(songId);
+    }
+    else{
+        playByIndex(gIdx);
+    }
+});
+
+    //前后首操作button事件绑定
         document.getElementById('btnPlay').addEventListener('click', togglePlay);
         document.getElementById('btnNext').addEventListener('click', next);
         document.getElementById('btnPrev').addEventListener('click', prev);
@@ -1223,6 +1272,7 @@
             const f = filtered();
             if(!f.length) return;
             const cid = library[curIdx]?.id;
+            let cidx = f.findIndex(x => x.id === cid);
             if (cidx === -1) cidx = 0;
             var nidx;
             if(isShuffle){
