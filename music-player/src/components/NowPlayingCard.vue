@@ -70,9 +70,23 @@
     animation-play-state: paused;
     opacity: .3;
 }
-
 </style>
 
 <script setup lang="ts">
+import {computed} from 'vue'
+import {useAudioStore} from '@/stores/audioStore'
+import { useLibraryStore } from '@/stores/libraryStore';
+import { fmt } from '@/utils/format';
+
+
+ const audio = useAudioStore()
+ const library = useLibraryStore()
+
+ const title = computed(() =>{
+    const idx = useAudioStore.curIdx
+    return idx >= 0 ? useLibraryStore.library[idx]?.name : '等待数据接入'
+ })
+
+ 
 
 </script>

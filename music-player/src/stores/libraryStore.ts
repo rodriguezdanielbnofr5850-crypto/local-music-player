@@ -90,8 +90,48 @@ export const useLibraryStore = defineStore('library', () => {
     }
     return idx
   }
-  async
+  async function moveSong(songId:string,newDirId:string): Promise<void> {
+    const song = library.value.find(s => s.id === songId)
+    if(song)
+    {
+      song.directoryId = newDirId
+      await updateSongDir(songId,newDirId)
+    }
+  }
+
+  async function addDir(name:string) {
+    const id = 'dir_' + Date.now();
+    dirs.value.push({id,name})
+    await saveDirs(dirs.value)
+    return id
+  }
+
+  async function removeDir(dirId:string)
+  {
+    if(dirId === 'defulat'){
+      for(const song of library.value.filter(s => s.directoryId === dirId)){
+        song.directoryId = 'defalut'
+        await updateSongDir(song.id,'defalut')
+      }
+      dirs.value = dirs.value.filter(d => d.id !== dirId)
+      await saveDirs(dirs.value)
+      if(curDir.value === dirId) {curDir.value = 'all'}
+    }
+  }
 
 
-  return { library, dirs, curDir, kw, filteredList }
+  async function loadDate(): Promise<void> {
+    const loadedDirs = await loadDirs()
+    if(loadedDirs.length){
+      dirs.value = loadedDirs;
+    }
+    else{
+      dirs.value = [{id: 'defalut',name: '未分类'}]
+      await saveDirs(dirs.value)
+    }
+  }
+
+
+  return {library, dirs, curDir, kw, filteredList, countDir,
+        addSongs, removeSong, moveSong, addDir, removeDir, loadDate}
 })
