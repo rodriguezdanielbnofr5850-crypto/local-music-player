@@ -47,6 +47,7 @@ body {
   background: rgba(0, 243, 255, 0.25);
   border-radius: 3px;
 }
+.app-container { display: flex; height: 100vh; width: 100vw; background: var(--bg-dark); }
 </style>
 <style scoped>
 .app-container {
@@ -56,14 +57,20 @@ body {
 }
 </style>
 <script setup lang="ts">
+import { ref } from 'vue'  
 import Sidebar from './components/Sidebar.vue'
 import Mainplayer from './components/Mainplayer.vue'
 import Popnumenu from './components/Popnumenu.vue'
 import { onMounted } from 'vue' 
 import { useLibraryStore } from './stores/libraryStore'
+import { useAudioStore } from './stores/audioStore'  
 
 const libraryStore = useLibraryStore()
-onMounted(() => {
-  libraryStore.loadDate()   
+const audioStore = useAudioStore()                         
+const audioRef = ref<HTMLAudioElement | null>(null) 
+onMounted(async () => {
+  audioStore.setAudioElement(audioRef.value)            
+  await libraryStore.loadDate()
+  audioStore.restoreFromLocalStorage()                  
 })
 </script>

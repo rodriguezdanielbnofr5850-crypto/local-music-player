@@ -1,14 +1,77 @@
 <template>
-  <div></div>
+  <div class="main">
+    <div class="sys-line">// SYNTHWAVE</div>
+
+    <div class="disc-box">
+      <img
+        class="disc"
+        :class="{ spin: !audioStore.paused }"
+        :src="audioStore.currentCoverUrl || defaultCover"
+        alt="cover"
+      />
+      <div class="disc-ring"></div>
+    </div>
+
+    <div class="info">
+      <div class="h">{{ audioStore.currentSong?.name || 'NO SIGNAL' }}</div>
+      <div class="sub">
+        <i>⬡</i>
+        <span>{{ audioStore.currentSong?.artist || 'System Idle' }}</span>
+      </div>
+    </div>
+
+    <div class="prog">
+      <span class="tm">{{ fmt(audioStore.currentTime) }}</span>
+      <div class="bar-wrap" @click="onSeek">
+        <div class="bar-fill" :style="{ width: audioStore.progressPercent + '%' }"></div>
+      </div>
+      <span class="tm">{{ fmt(audioStore.duration) }}</span>
+    </div>
+
+    <div class="ctrls">
+      <button class="cbtn" :class="{ on: audioStore.isShuffle }" @click="audioStore.toggleMode('shuffle')">⇄</button>
+      <button class="cbtn" @click="audioStore.prev()">◄◄</button>
+      <button class="cbtn" @click="audioStore.togglePlay()">{{ audioStore.paused ? '▶' : '⏸' }}</button>
+      <button class="cbtn" @click="audioStore.next()">►►</button>
+      <button class="cbtn" :class="{ on: audioStore.isLoop }" @click="audioStore.toggleMode('loop')">↻</button>
+    </div>
+
+    <div class="vol">
+      <span>◖</span>
+      <div class="vbar" @click="onSetVolume">
+        <div class="vfill" :style="{ width: audioStore.volume * 100 + '%' }"></div>
+      </div>
+      <span>◗</span>
+    </div>
+  </div>
 </template>
 
-
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useAudioStore } from '@/stores/audioStore'
+import defaultCoverImg from '@/assets/music.png'
 
+const audioStore = useAudioStore()
+const defaultCover = defaultCoverImg
 
+function fmt(t: number): string {
+  if (!t || isNaN(t)) return '0:00'
+  const m = Math.floor(t / 60)
+  const s = Math.floor(t % 60)
+  return `${m}:${s < 10 ? '0' : ''}${s}`
+}
 
+function onSeek(e: MouseEvent) {
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const pct = (e.clientX - rect.left) / rect.width
+  audioStore.seek(pct)
+}
+
+function onSetVolume(e: MouseEvent) {
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  let vol = (e.clientX - rect.left) / rect.width
+  vol = Math.min(1, Math.max(0, vol))
+  audioStore.setVolume(vol)
+}
 </script>
 
 <style>
