@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { useLibraryStore } from '@/stores/libraryStore'
+import { useLibraryStore } from '@/modules/player/stores/libraryStore'
 
 const libraryStore = useLibraryStore()
 

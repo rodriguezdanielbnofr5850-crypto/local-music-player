@@ -6,7 +6,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { useLibraryStore } from '@/stores/libraryStore'
+import { useLibraryStore } from '@/modules/player/stores/libraryStore'
 
 const libraryStore = useLibraryStore()
 

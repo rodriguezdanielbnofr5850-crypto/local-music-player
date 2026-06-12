@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAudioStore } from '@/stores/audioStore'
+import { useAudioStore } from '@/modules/player/stores/audioStore'
 import defaultCoverImg from '@/assets/music.png'
 
 const audioStore = useAudioStore()

@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Ref, ComputedRef } from 'vue'
-import { loadSongs, saveSong, updateSongDir, loadDirs, saveDirs, delSong } from '@/utils/db'
-import { parseName } from '@/utils/format'
+import { loadSongs, saveSong, updateSongDir, loadDirs, saveDirs, delSong } from '@/modules/player/utils/db'
+import { parseName } from '@/modules/player/utils/format'
 
 export interface Song {
   id: string

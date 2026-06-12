@@ -2,9 +2,9 @@ import {ref,computed,watch} from 'vue'
 import {defineStore} from 'pinia'
 import type { ComputedRef } from 'vue'
 import type {Song} from './libraryStore'
-import { extractCover } from '@/utils/cover'
+import { extractCover } from '@/modules/player/utils/cover'
 import { useLibraryStore } from './libraryStore'
-import { delSong } from '@/utils/db'
+import { delSong } from '@/modules/player/utils/db'
 
 
 export interface AudioState{

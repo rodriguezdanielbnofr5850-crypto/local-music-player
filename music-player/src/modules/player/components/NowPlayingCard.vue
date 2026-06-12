@@ -17,8 +17,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useAudioStore } from '@/stores/audioStore'
-import { fmt } from '@/utils/format'
+import { useAudioStore } from '@/modules/player/stores/audioStore'
+import { fmt } from '@/modules/player/utils/format'
 
 const audio = useAudioStore()
 const title = computed(() => audio.currentSong?.name ?? '等待数据接入...')

@@ -48,8 +48,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useLibraryStore } from '@/stores/libraryStore'
-import { useAudioStore } from '@/stores/audioStore'
+import { useLibraryStore } from '@/modules/player/stores/libraryStore.ts'
+import { useAudioStore } from '@/modules/player/stores/audioStore.ts'
 import NowPlayingCard from './NowPlayingCard.vue'
 import SearchBar from './SearchBar.vue'
 import DirBar from './DirBar.vue'
