@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed,reactive} from 'vue'
 import type { Ref, ComputedRef } from 'vue'
 import { loadSongs, saveSong, updateSongDir, loadDirs, saveDirs, delSong } from '@/modules/player/utils/db'
 import { parseName } from '@/modules/player/utils/format'
@@ -83,6 +83,16 @@ export const useLibraryStore = defineStore('library', () => {
     }
   }
 
+
+  const playCounts = reactive<Record<string, number>>({})
+
+  function incrementPlayCount(songId: string) {
+  playCounts[songId] = (playCounts[songId] || 0) + 1
+  }
+
+  function getTotalPlayCount(): number {
+    return Object.values(playCounts).reduce((sum, c) => sum + c, 0)
+  }
   async function removeSong(id:string) {
     const idx = library.value.findIndex(s => s.id === id)
     if(idx != -1)
@@ -134,6 +144,6 @@ async function loadDate(): Promise<void> {
   }
 
 
-  return {library, dirs, curDir, kw, filteredList, countDir,
+  return {library, dirs, curDir, kw, filteredList,  playCounts, incrementPlayCount, getTotalPlayCount,countDir,
         addSongs, removeSong, moveSong, addDir, removeDir, loadDate}
 })

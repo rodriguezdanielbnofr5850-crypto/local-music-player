@@ -68,7 +68,12 @@ function bindAudioEvent(): void{
         duration.value = audioElement.value.duration || 0
     }
     })
-    el.addEventListener('ended',() => {next()})
+    el.addEventListener('ended', () => {
+  if (currentSong.value) {
+    libraryStore.incrementPlayCount(currentSong.value.id)
+  }
+  next()
+})
     el.addEventListener('volumechange',()=>{
         if(audioElement.value)
         {
