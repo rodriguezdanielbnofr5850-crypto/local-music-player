@@ -5,8 +5,8 @@
         <img v-if="currentCover" :src="currentCover" alt="cover" class="album-img" />
         <div v-else class="album-placeholder">🎵</div>
       </div>
-      <div class="track-details">
-        <div class="track-title">{{ currentSongName || 'No Signal' }}</div>
+      <div class="track-details" ref="titleContainer">
+        <div class="track-title" ref="titleText">{{ currentSongName || 'No Signal' }}</div>
         <div class="artist-name">{{ currentArtist || 'System Idle' }}</div>
       </div>
       <!-- 纯 CSS 音量条动画（不变） -->
@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed,ref,onMounted,nextTick,watch} from 'vue'
 import { useRouter } from 'vue-router'
 import { useAudioStore } from '@/stores/audioStore'
 import { useLibraryStore } from '@/stores/libraryStore'
@@ -73,6 +73,11 @@ import { useLibraryStore } from '@/stores/libraryStore'
 const router = useRouter()
 const audioStore = useAudioStore()
 const libraryStore = useLibraryStore()
+
+
+const titleContainer = ref<HTMLElement>()
+const titleText = ref<HTMLElement>()
+const titleFontSize = ref('1.3rem') 
 
 // 当前歌曲信息
 const currentSong = computed(() => audioStore.currentSong)
@@ -85,6 +90,32 @@ const paused = computed(() => audioStore.paused)
 const currentTime = computed(() => audioStore.currentTime)
 const duration = computed(() => audioStore.duration)
 const progressPercent = computed(() => audioStore.progressPercent)
+
+async function adjustFontSize() {
+  if (!titleContainer.value || !titleText.value) return
+  const container = titleContainer.value
+  const text = titleText.value
+
+  // 先设为最大字号
+  text.style.fontSize = '1.3rem'
+  await nextTick()
+
+  // 如果溢出，逐渐缩小
+  let fontSize = 1.3 * 16 // 转 px
+  while (text.scrollWidth > container.clientWidth && fontSize > 12) {
+    fontSize -= 0.5
+    text.style.fontSize = `${fontSize}px`
+  }
+  // 保留最小 12px，防止无限小
+}
+
+watch(currentSongName, () => {
+  adjustFontSize()
+})
+
+onMounted(() => {
+  adjustFontSize()
+})
 
 // 格式化时间
 function formatTime(seconds: number): string {
@@ -115,8 +146,7 @@ function goToPlayer() {
 <style scoped>
 /* 保持原样式，只需确保 .volume-bars .bar 的动画不受播放状态影响（始终运行） */
 .main-music-card {
-  max-width: 420px;
-  width: 90%;
+  width: 300px; 
   padding: 18px;
   border-radius: 35px;
   background: #1a1a1a;
@@ -188,12 +218,14 @@ function goToPlayer() {
   overflow: hidden;
 }
 .track-title {
-  font-size: 1.3em;
-  font-weight: 600;
+  display: inline-block;    
+  width: max-content;        
   white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  overflow: visible;        
+  font-size: clamp(0.9rem, 4vw, 1.3rem);
+  font-weight: 600;
 }
+
 .artist-name {
   font-size: 0.9em;
   color: #d1d1d6;
