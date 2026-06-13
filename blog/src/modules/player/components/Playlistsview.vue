@@ -2,10 +2,15 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLibraryStore } from '@/modules/player/stores/libraryStore'
+import sleepcat from '@/modules/player/components/sleepcat.vue'
 
 const libraryStore = useLibraryStore()
 const router = useRouter()
 
+
+function goBack() {
+  router.push('/')
+}
 /* --- 新建歌单弹框 --- */
 const showDialog = ref(false)
 const newName = ref('')
@@ -74,8 +79,15 @@ function openPlaylist(dirId: string) {
 
 <template>
   <div class="playlist-view">
+        <div class="top-nav">
+      <button class="back-btn" @click="goBack" title="返回">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+        </div>
     <input type="file" ref="addFileInput" accept="audio/*" multiple webkitdirectory style="display:none" @change="onAddFiles" />
-
+    <sleepcat />
     <div class="pl-list">
       <!-- 歌单项循环 -->
       <template v-for="d in libraryStore.dirs" :key="d.id">
@@ -190,6 +202,35 @@ function openPlaylist(dirId: string) {
   overflow-y: auto;
   padding: 0 2px;
 }
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  z-index: 10;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: rgba(0, 243, 255, 0.15);
+  color: var(--neon-cyan, #00f3ff);
+  transform: translateX(-2px);
+}
+
 
 .pl-list {
   display: flex;
