@@ -29,11 +29,8 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0, 243, 255, 0.25); border-radius: 3px; }
-.app-container {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  background: var(--bg-dark);
+#app {
+  width: 100%; 
 }
 </style>
 
