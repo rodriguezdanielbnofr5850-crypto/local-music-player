@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed,reactive} from 'vue'
 import type { Ref, ComputedRef } from 'vue'
-import { loadSongs, saveSong, updateSongDir, loadDirs, saveDirs, delSong } from '@/modules/player/utils/db'
+import { loadSongs, saveSong, saveDirSong, loadDirSongs, delDirSong, delDirSongsByDir, loadDirs, saveDirs, delSong } from '@/modules/player/utils/db'
 import { parseName } from '@/modules/player/utils/format'
 
 export interface Song {
@@ -10,7 +10,6 @@ export interface Song {
   name: string
   artist: string
   originalFileName: string
-  directoryId: string
   file: File
 }
 export interface Dir {
@@ -18,24 +17,32 @@ export interface Dir {
   name: string
   cover?: string
 }
+export interface DirSong {
+  dirId: string
+  songId: string
+}
 interface FilteredSong extends Song {
   _globalIdx: number
-  _dirName?: string
+  _dirNames: string
 }
 export const useLibraryStore = defineStore('library', () => {
   const library = ref<Song[]>([])
   const dirs = ref<Dir[]>([])
   const curDir = ref<string>('all')
+  const dirSongs = ref<DirSong[]>([])
   const kw = ref<string>('')
   const filteredList = computed<FilteredSong[]>(() => {
     var list: FilteredSong[] = library.value.map((song, idx) => ({
       ...song,
       _globalIdx: idx,
-      _dirName: ''
+      _dirNames: ''
     }))
 
     if (curDir.value !== 'all') {
-      list = list.filter(s => s.directoryId === curDir.value)
+      const songIds = new Set(
+        dirSongs.value.filter(ds => ds.dirId === curDir.value).map(ds => ds.songId)
+      )
+      list = list.filter(s => songIds.has(s.id))
     }
 
     if (kw.value.trim()) {
@@ -48,8 +55,11 @@ export const useLibraryStore = defineStore('library', () => {
 
     if (curDir.value === 'all') {
       list.forEach(s => {
-        const d = dirs.value.find(dir => dir.id === s.directoryId)
-        s._dirName = d ? d.name : ''
+        const dirIds = dirSongs.value.filter(ds => ds.songId === s.id).map(ds => ds.dirId)
+        const names = dirIds
+          .map(did => dirs.value.find(d => d.id === did)?.name)
+          .filter(Boolean)
+        s._dirNames = names.join(', ')
       })
     }
 
@@ -57,7 +67,7 @@ export const useLibraryStore = defineStore('library', () => {
   })
 
   const countDir = (dirId: string): number =>{
-        return (library.value.filter((s: Song) => s.directoryId === dirId)).length;
+    return dirSongs.value.filter(ds => ds.dirId === dirId).length
   }
 
 
@@ -76,10 +86,14 @@ export const useLibraryStore = defineStore('library', () => {
         artist:artist,
         file,
         originalFileName: file.name,
-        directoryId: target
       }
       library.value.push(song)
       await saveSong(song)
+      if (curDir.value !== 'all') {
+        const ds: DirSong = { dirId: curDir.value, songId: song.id }
+        dirSongs.value.push(ds)
+        await saveDirSong(ds.dirId, ds.songId)
+      }
     }
   }
 
@@ -93,23 +107,15 @@ export const useLibraryStore = defineStore('library', () => {
   function getTotalPlayCount(): number {
     return Object.values(playCounts).reduce((sum, c) => sum + c, 0)
   }
-  async function removeSong(id:string) {
+async function removeSong(id: string) {
     const idx = library.value.findIndex(s => s.id === id)
-    if(idx != -1)
-    {
-      library.value.splice(idx,1)
-      await delSong(id)
+    if (idx !== -1) {
+      library.value.splice(idx, 1)
+      dirSongs.value = dirSongs.value.filter(ds => ds.songId !== id)
+      await delSong(id)  
     }
     return idx
-  }
-  async function moveSong(songId:string,newDirId:string): Promise<void> {
-    const song = library.value.find(s => s.id === songId)
-    if(song)
-    {
-      song.directoryId = newDirId
-      await updateSongDir(songId,newDirId)
-    }
-  }
+}
 
   async function addDir(name: string, cover?: string) {
     const id = 'dir_' + Date.now();
@@ -118,32 +124,38 @@ export const useLibraryStore = defineStore('library', () => {
     return id
   }
 
-  async function removeDir(dirId:string)
-  {
-    if(dirId !== 'default'){
-      for(const song of library.value.filter(s => s.directoryId === dirId)){
-        song.directoryId = 'default'
-        await updateSongDir(song.id,'default')
-      }
-      dirs.value = dirs.value.filter(d => d.id !== dirId)
-      await saveDirs(JSON.parse(JSON.stringify(dirs.value)))
-      if(curDir.value === dirId) {curDir.value = 'all'}
+async function removeDir(dirId: string): Promise<void> {
+    dirs.value = dirs.value.filter(d => d.id !== dirId)
+    await saveDirs(JSON.parse(JSON.stringify(dirs.value)))
+
+    dirSongs.value = dirSongs.value.filter(ds => ds.dirId !== dirId)
+    await delDirSongsByDir(dirId)
+
+    if (curDir.value === dirId) {
+      curDir.value = 'all'
     }
-  }
+}
 
 
 async function loadDate(): Promise<void> {
     const loadedDirs = await loadDirs()
-    if(loadedDirs.length){
       dirs.value = loadedDirs.filter(d => d.id !== 'default');
-    }
-    else{
-      dirs.value = [] 
-      await saveDirs(JSON.parse(JSON.stringify(dirs.value)))
-    }
+      const loadedDirSongs = await loadDirSongs()
+      dirSongs.value = loadedDirSongs.map(ds => ({ dirId: ds.dirId, songId: ds.songId }))
+      if (dirSongs.value.length === 0) {
+        const loadedSongs = await loadSongs()
+        const oldMappings = (loadedSongs as any[]).filter(s => s.directoryId && s.directoryId !== 'default')
+         if (oldMappings.length > 0) {
+            for (const s of oldMappings) {
+                const ds: DirSong = { dirId: s.directoryId, songId: s.id }
+                dirSongs.value.push(ds)
+                await saveDirSong(ds.dirId, ds.songId)
+            }
+        }
+      }
   }
 
 
   return {library, dirs, curDir, kw, filteredList,  playCounts, incrementPlayCount, getTotalPlayCount,countDir,
-        addSongs, removeSong, moveSong, addDir, removeDir, loadDate}
+        addSongs, removeSong, addDir, removeDir, loadDate}
 })

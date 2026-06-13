@@ -84,7 +84,8 @@ function openPlaylist(dirId: string) {
           
           <!-- 左边：封面 -->
           <div class="pl-cover">
-            <img :src="d.cover || audioStore.currentCoverUrl || ''" class="pl-cover-img" />
+            <img v-if="d.cover || audioStore.currentCoverUrl" :src="d.cover || audioStore.currentCoverUrl ||  ''" class="pl-cover-img" />
+            <div v-else class="default-cover-icon">🎵</div>
           </div>
           
           <!-- 中间：名字和数量 -->
@@ -226,6 +227,15 @@ function openPlaylist(dirId: string) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.default-cover-icon {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #14b8a6, #3b82f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pl-cover-new {

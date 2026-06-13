@@ -1,19 +1,25 @@
 const DB_NAME = 'CyberAudioDB';
-const DB_VER = 2;
+const DB_VER = 3;
 const STORE_SONGS = 'songs';
 const STORE_DIRS = 'dirs';
+const STORE_DIRSONGS = 'dirSongs';
 interface SongRecord {
     id: string;
     signature: string;
     name: string;
     artist: string;
     originalFileName: string;
-    directoryId: string;
     file: File;
 }
 interface DirRecord {
     id: string;
     name: string;
+}
+
+interface DirSongRecord {  
+    id: string;  
+    dirId: string;
+    songId: string;
 }
 function openDB(): Promise<IDBDatabase>{
     return new Promise((resolve, reject) => {
@@ -26,7 +32,12 @@ function openDB(): Promise<IDBDatabase>{
             if (!db.objectStoreNames.contains(STORE_DIRS)) {
                 db.createObjectStore(STORE_DIRS, { keyPath: 'id' });
             }
-        };
+            if (!db.objectStoreNames.contains(STORE_DIRSONGS)) {
+                const store = db.createObjectStore(STORE_DIRSONGS, { keyPath: 'id' });
+                store.createIndex('dirId', 'dirId', { unique: false });
+                store.createIndex('songId', 'songId', { unique: false });
+                }
+            }
         r.onsuccess = (e : Event) => resolve((e.target as IDBOpenDBRequest).result);
         r.onerror = (e: Event) => reject((e.target as IDBOpenDBRequest).result);
     }
@@ -42,7 +53,6 @@ export async function saveSong(s: SongRecord): Promise<void>{
             name: s.name,
             artist: s.artist,
             originalFileName: s.originalFileName,
-            directoryId: s.directoryId,
             file: s.file
         })
         t.oncomplete = () => resolve();
@@ -61,7 +71,6 @@ export async function loadSongs(): Promise<SongRecord[]>{
                 name: item.name,
                 artist: item.artist,
                 originalFileName: item.originalFileName,
-                directoryId: item.directoryId,
                 file: item.file
             }));
             resolve(out);
@@ -69,27 +78,67 @@ export async function loadSongs(): Promise<SongRecord[]>{
         r.onerror = e => reject((e.target as IDBOpenDBRequest).error);
     })
 }
-export async function updateSongDir(id: string, dirId: string): Promise<void>{
-    const db = await openDB();
-    return new Promise((res, rej) => {
-        const t = db.transaction(STORE_SONGS, 'readwrite'), st = t.objectStore(STORE_SONGS);
-        const g = st.get(id);
-        g.onsuccess = () => {
-            const d = g.result;
-            if (d) {
-                d.directoryId = dirId;
-                st.put(d);
+export async function delDirSong(dirId:string,songId:string): Promise<void> {
+    const db = await openDB()
+    return new Promise((res,rej) =>{
+        const t = db.transaction(STORE_DIRSONGS,'readwrite')
+        t.objectStore(STORE_DIRSONGS).delete(`${dirId}_${songId}`)
+        t.oncomplete = () => res()
+        t.onerror = (e: Event) => rej((e.target as IDBOpenDBRequest).error);
+    })
+}
+
+export async function saveDirSong(dirId:string,songId:string): Promise<void> {
+    const db = await openDB()
+    return new Promise((res,rej) =>{
+        const t = db.transaction(STORE_DIRSONGS,'readwrite')
+        t.objectStore(STORE_DIRSONGS).put({
+            id:`${dirId}_${songId}`,
+            dirId,
+            songId
+    })
+        t.oncomplete = () => res()
+        t.onerror = (e: Event) => rej((e.target as IDBOpenDBRequest).error);
+    })
+}
+export async function loadDirSongs(): Promise<DirSongRecord[]> {
+    const db = await openDB()
+    return new Promise((res,rej) =>{
+        const r = db.transaction(STORE_DIRSONGS,'readonly').objectStore(STORE_DIRSONGS).getAll();
+        r.onsuccess = (e: Event) => res((e.target as IDBRequest<DirSongRecord[]>).result);
+        r.onerror = (e: Event) => rej((e.target as IDBOpenDBRequest).error);
+    })
+}
+
+export async function delDirSongsByDir(dirId:string): Promise<void> {
+    const db = await openDB()
+    return new Promise((res,rej) =>{
+        const t = db.transaction(STORE_DIRSONGS,'readwrite')
+        const store = t.objectStore(STORE_DIRSONGS)
+        const idx = store.index('dirId')
+        const r = idx.openCursor(IDBKeyRange.only(dirId))
+        r.onsuccess = (e: Event) =>{
+            const cursor = (e.target as IDBRequest).result;
+            if (cursor) {
+                cursor.delete();
+                cursor.continue();
             }
-            res();
-        };
-        g.onerror = (e: Event) => rej((e.target as IDBOpenDBRequest).error);
-    });
+        }
+        t.oncomplete = () => res()
+        t.onerror = (e: Event) => rej((e.target as IDBOpenDBRequest).error);
+    })
 }
 export async function delSong(id: string): Promise<void>{
     const db = await openDB();
     return new Promise((res, rej) => {
         const t = db.transaction(STORE_SONGS, 'readwrite');
         t.objectStore(STORE_SONGS).delete(id);
+        const idx = t.objectStore(STORE_DIRSONGS).index('songId')
+        const cursor = idx.openCursor(IDBKeyRange.only(id))
+        cursor.onsuccess = (e: Event) => {
+            const c = (e.target as IDBRequest).result
+            if(c) {c.delete(); c.continue();}
+        }
         t.oncomplete = () =>res();
         t.onerror = (e: Event) => rej((e.target as IDBOpenDBRequest).error);
     });

@@ -14,5 +14,4 @@ import player from '@/modules/bloghome/components/music.vue'
 
 <style>
 
-
 </style>
