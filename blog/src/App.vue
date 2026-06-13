@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <router-view />
+     <audio ref="audioRef" style="display: none" />
   </div>
 </template>
 
@@ -37,4 +38,11 @@ body {
 </style>
 
 <script setup lang="ts">
+import {ref,onMounted} from 'vue'
+import { useAudioStore } from '@/stores/audioStore'
+const audioRef = ref<HTMLAudioElement>()
+const audioStore = useAudioStore()
+onMounted(() => {
+  audioStore.setAudioElement(audioRef.value ?? null)  // ← 这里调用绑定
+})
 </script>

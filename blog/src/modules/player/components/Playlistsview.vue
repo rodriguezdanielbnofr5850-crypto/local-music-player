@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useLibraryStore } from '@/modules/player/stores/libraryStore'
+import { useLibraryStore } from '@/stores/libraryStore'
 import sleepcat from '@/modules/player/components/sleepcat.vue'
 
 const libraryStore = useLibraryStore()
@@ -18,7 +18,7 @@ const newPrivate = ref(false)
 
 const newCoverUrl = ref('')
 
-import { useAudioStore } from '@/modules/player/stores/audioStore'
+import { useAudioStore } from '@/stores/audioStore'
 
 const audioStore = useAudioStore()
 

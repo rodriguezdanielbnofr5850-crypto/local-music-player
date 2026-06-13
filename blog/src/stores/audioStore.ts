@@ -133,11 +133,17 @@ async function play(): Promise<void> {
             currentAudioUrl.value = url
         }else return
     }
-    await el.play().catch((e: unknown) => {console.warn('播放失败',e)})
+   try {
+    await el.play();
+    paused.value = false; 
+  } catch (e) {
+    console.warn('播放失败', e);
+  }
 }
 
 function pause(): void{
     audioElement.value?.pause()
+    paused.value = true;
 }
 
 function togglePlay(): void{

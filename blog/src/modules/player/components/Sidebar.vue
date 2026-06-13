@@ -8,8 +8,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useLibraryStore } from '@/modules/player/stores/libraryStore.ts'
-import { useAudioStore } from '@/modules/player/stores/audioStore.ts'
+import { useLibraryStore } from '@/stores/libraryStore'
+import { useAudioStore } from '@/stores/audioStore'
 import { useRouter } from 'vue-router'
 import { computed } from 'vue'
 

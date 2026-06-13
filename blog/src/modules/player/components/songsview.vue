@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useLibraryStore } from '@/modules/player/stores/libraryStore'
-import { useAudioStore } from '@/modules/player/stores/audioStore'
+import { useLibraryStore } from '@/stores/libraryStore'
+import { useAudioStore } from '@/stores/audioStore'
 import { useRouter } from 'vue-router'
 
 const libraryStore = useLibraryStore()
