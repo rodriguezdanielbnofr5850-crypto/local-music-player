@@ -6,7 +6,7 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 :root {
   --neon-cyan: #00f3ff;
   --neon-pink: #ff00ff;

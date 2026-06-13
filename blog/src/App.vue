@@ -22,16 +22,14 @@ body {
   background: var(--bg-dark);
   color: var(--text-main);
   font-family: var(--font-mono);
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
+  min-height: 100vh;
+}
+#app {
+  width: 100%;
 }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0, 243, 255, 0.25); border-radius: 3px; }
-#app {
-  width: 100%; 
-}
 </style>
 
 <script setup lang="ts">
