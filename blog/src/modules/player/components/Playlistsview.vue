@@ -84,7 +84,7 @@ function openPlaylist(dirId: string) {
           
           <!-- 左边：封面 -->
           <div class="pl-cover">
-            <img v-if="d.cover || audioStore.currentCoverUrl" :src="d.cover || audioStore.currentCoverUrl ||  ''" class="pl-cover-img" />
+            <img v-if="d.cover" :src="d.cover" class="pl-cover-img" />
             <div v-else class="default-cover-icon">🎵</div>
           </div>
           

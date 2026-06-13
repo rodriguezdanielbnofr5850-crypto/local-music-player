@@ -77,7 +77,18 @@ export const useLibraryStore = defineStore('library', () => {
     const target = curDir.value === 'all' ? 'default' : curDir.value
     for(const file of valid){
       const sign = `${file.name}_${file.size}`
-      if(library.value.some(s => s.signature === sign)) continue;
+      var existingSong = library.value.find(s => s.signature === sign)
+      if (existingSong){
+        const isAlreadyInDir = dirSongs.value.some(ds => ds.dirId === curDir.value && ds.songId === existingSong!.id)
+        if (!isAlreadyInDir)
+        {
+          const ds: DirSong = { dirId: curDir.value, songId: existingSong.id }
+          dirSongs.value.push(ds)
+          await saveDirSong(ds.dirId, ds.songId)
+        }
+         continue;
+      }
+
       const {artist,title} = parseName(file.name)
       const song: Song= {
         id: String(Date.now() + Math.random()),
@@ -142,20 +153,24 @@ async function loadDate(): Promise<void> {
       dirs.value = loadedDirs.filter(d => d.id !== 'default');
       const loadedDirSongs = await loadDirSongs()
       dirSongs.value = loadedDirSongs.map(ds => ({ dirId: ds.dirId, songId: ds.songId }))
-      if (dirSongs.value.length === 0) {
-        const loadedSongs = await loadSongs()
-        const oldMappings = (loadedSongs as any[]).filter(s => s.directoryId && s.directoryId !== 'default')
-         if (oldMappings.length > 0) {
-            for (const s of oldMappings) {
-                const ds: DirSong = { dirId: s.directoryId, songId: s.id }
-                dirSongs.value.push(ds)
-                await saveDirSong(ds.dirId, ds.songId)
-            }
+      const loadedSongs = await loadSongs()
+      library.value = loadedSongs as Song[]
+      if (dirSongs.value.length === 0 && library.value.length > 0) {
+        const oldMappings = (library.value as any[]).filter(s => s.directoryId && s.directoryId !== 'default')
+        if (oldMappings.length > 0) {
+          for (const s of oldMappings) {
+            const ds: DirSong = { dirId: s.directoryId, songId: s.id }
+            dirSongs.value.push(ds)
+            await saveDirSong(ds.dirId, ds.songId)
         }
       }
+    }
   }
 
 
-  return {library, dirs, curDir, kw, filteredList,  playCounts, incrementPlayCount, getTotalPlayCount,countDir,
-        addSongs, removeSong, addDir, removeDir, loadDate}
+return {
+  library, dirs, dirSongs, curDir, kw, filteredList,
+  playCounts, incrementPlayCount, getTotalPlayCount, countDir,
+  addSongs, removeSong, addDir, removeDir, loadDate
+}
 })

@@ -131,7 +131,7 @@ export async function delDirSongsByDir(dirId:string): Promise<void> {
 export async function delSong(id: string): Promise<void>{
     const db = await openDB();
     return new Promise((res, rej) => {
-        const t = db.transaction(STORE_SONGS, 'readwrite');
+         const t = db.transaction([STORE_SONGS, STORE_DIRSONGS], 'readwrite');
         t.objectStore(STORE_SONGS).delete(id);
         const idx = t.objectStore(STORE_DIRSONGS).index('songId')
         const cursor = idx.openCursor(IDBKeyRange.only(id))
