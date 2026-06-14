@@ -146,7 +146,7 @@ function goToPlayer() {
 <style scoped>
 /* 保持原样式，只需确保 .volume-bars .bar 的动画不受播放状态影响（始终运行） */
 .main-music-card {
-  width: 300px; 
+  width: 100%; 
   padding: 18px;
   border-radius: 35px;
   background: #1a1a1a;
