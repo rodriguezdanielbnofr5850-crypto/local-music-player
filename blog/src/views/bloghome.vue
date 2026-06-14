@@ -46,7 +46,11 @@ import ImageSlider from '@/modules/bloghome/components/image.vue'
 import img1 from '@/assets/home.webp'
 import img2 from '@/assets/think.webp'
 import img3 from '@/assets/play.webp'
-import img4 from '@/assets/view.webp'
+import img4 from '@/assets/myself.webp'
+import img5 from '@/assets/myself2.webp'
+import img6 from '@/assets/party.webp'
+import img7 from '@/assets/classmates.webp'
+import img8 from '@/assets/school.webp'
 const cardsWrapper = ref<HTMLElement | null>(null)
 const mainBody = ref<HTMLElement | null>(null)
 
@@ -74,8 +78,14 @@ const albumImages = [
    最后冥冥之中选了这张的特写` },
   { url: img3, description: `第一次研学在外面住，和朋友玩到一点
     高中为数不多觉得还挺开心的事情`},
-  { url: img4, description: `刚高考完拍的照片，天气真好看啊
-    内心os却是终于脱离苦海了` },
+  { url: img4, description: `为数不多拍出来自己都觉得蛮好看的照片` },
+  { url: img5, description: `老实说我是宿舍最宅的，每天都呆在宿舍，每次室友回来第一句话都是咋又你一个人在宿舍` },
+  { url: img6, description: `大学里的第一次团建，关系都还不错
+    希望大二的室友也能相处的来` },
+  { url: img7, description: `这一排都是我高中的同学，老实说几乎全做过同桌
+    可惜大学几乎再也没有交流了`},
+  { url: img8, description: `高二当时真心觉得自己可以考上这种层次
+    后来心气全散了，完全没有提升的想法了，得过且过，安于现状` },
 ]
 </script>
 
