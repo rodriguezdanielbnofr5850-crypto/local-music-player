@@ -21,9 +21,9 @@
           </path>
         </pattern>
       </defs>
-        <text text-anchor="middle" x="60" y="15" font-size="17" fill="white">一路向北的小窝</text>
-      <text text-anchor="middle" x="60" y="15" font-size="17" fill="url(#wave)" fill-opacity="0.9">一路向北的小窝</text>
-      <text text-anchor="middle" x="60" y="15" font-size="17" fill="url(#gradient)" fill-opacity="0.1">一路向北的小窝</text>
+        <text text-anchor="middle" x="60" y="15" font-size="17" fill="white">一路向北</text>
+      <text text-anchor="middle" x="60" y="15" font-size="17" fill="url(#wave)" fill-opacity="0.9">一路向北</text>
+      <text text-anchor="middle" x="60" y="15" font-size="17" fill="url(#gradient)" fill-opacity="0.1">一路向北</text>
     </svg>
 
     <!-- 原有文字动画 -->
