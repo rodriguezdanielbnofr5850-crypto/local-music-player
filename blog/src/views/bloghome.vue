@@ -33,7 +33,7 @@
       <div class="album-container">
         <ImageSlider :images="albumImages" />
       </div>
-      <WeatherCard class="weather-card-comp" />
+       <WeatherCard address="武汉" class="weather-card-comp" />
     </div>
     <div class="articles-section">
       <ArticleShow :articles="articles" />

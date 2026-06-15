@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "eve": "^0.5.4"
+    "@types/snapsvg": "^0.5.8",
+    "eve": "^0.5.4",
+    "snapsvg-cjs": "^0.0.6"
   }
 }
